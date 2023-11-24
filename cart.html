@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="index.html">Home</a>
+    <a class="navbar-brand" href="categories.html">Book Categories</a>
+    <a class="navbar-brand" href="contact.html">Contact Us</a>
+    <a class="navbar-brand" href="payment.html">Payment</a>
+  </nav>
+
+  
+  <div class="container mt-4">
+    <h2>Shopping Cart</h2>
+    <div id="cart-content">
+     
+    </div>
+  </div>
+
+ 
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-md-6 offset-md-6">
+        <div id="total-amount">
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+ 
+  <div class="container mt-4">
+    <div class="row">
+      <div class="col-md-6 offset-md-6">
+        <button id="proceed-to-payment" class="btn btn-primary">Proceed to Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+   
+    function displayCartItems() {
+      const cartContent = document.getElementById('cart-content');
+      cartContent.innerHTML = '';
+
+     
+      const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+     
+      cartItems.forEach((cartItem) => {
+        const cartItemCard = document.createElement('div');
+        cartItemCard.classList.add('card', 'mb-2');
+        cartItemCard.innerHTML = `
+          <div class="card-body">
+            <h5 class="card-title">${cartItem.title}</h5>
+            <p class="card-text">Author: ${cartItem.author}</p>
+            <p class="card-text">Price: $${cartItem.price.toFixed(2)}</p>
+            <p class="card-text">Quantity: <input type="number" min="1" value="${cartItem.quantity}" onchange="updateQuantity('${cartItem.title}', this.value)"></p>
+            <button class="btn btn-danger" onclick="removeItem('${cartItem.title}')">Remove</button>
+          </div>
+        `;
+        cartContent.appendChild(cartItemCard);
+      });
+
+      updateTotalAmount(cartItems);
+    }
+
+    
+    function updateQuantity(title, newQuantity) {
+     
+      const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+     
+      const cartItem = cartItems.find((item) => item.title === title);
+
+      if (cartItem) {
+        cartItem.quantity = parseInt(newQuantity, 10);
+      }
+
+     
+      localStorage.setItem('cartItems', JSON.stringify(cartItems));
+
+      displayCartItems();
+    }
+
+   
+    function removeItem(title) {
+     
+      let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+      
+      cartItems = cartItems.filter((item) => item.title !== title);
+
+      
+      localStorage.setItem('cartItems', JSON.stringify(cartItems));
+
+      displayCartItems();
+    }
+
+    
+    function updateTotalAmount(cartItems) {
+      const totalAmount = document.getElementById('total-amount');
+      const bookData = fetchBookData();
+      const totalPrice = cartItems.reduce((total, item) => {
+        
+        const bookPrice = bookData.find((book) => book.title === item.title)?.price || 0;
+        return total + bookPrice * item.quantity;
+      }, 0);
+      totalAmount.innerHTML = `<p>Total Amount: $${totalPrice.toFixed(2)}</p>`;
+    }
+
+   
+    function fetchBookData() {
+      try {
+        const response = fetch('book.json');
+        const data = response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching book data:', error);
+        return [];
+      }
+    }
+
+   
+    function proceedToPayment() {
+      
+      window.location.href = 'payment.html';
+    }
+
+    
+    displayCartItems();
+
+    
+    const proceedButton = document.getElementById('proceed-to-payment');
+    proceedButton.addEventListener('click', proceedToPayment);
+  </script>
+</body>
+</html>
